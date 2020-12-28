@@ -104,16 +104,8 @@ function transcribeFromFile(callback) {
     }
   );
 }
-// transcribeFromFile();
-// convert("output.ogg", "output.wav", function (err) {
-//             if (!err) {
-//               console.log("conversion complete");
-//               transcribeFromFile();
-//             }
-//           })
 
 function convert(input, output, callback) {
-  console.log(input);
   ffmpeg()
     .input(input)
     .inputFormat("ogg")
