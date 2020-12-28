@@ -26,20 +26,16 @@ client.on("message", async (msg) => {
   }
   if (msg.hasMedia) {
     msg.reply("music to my ears");
-    msg
-      .downloadMedia()
+    const vn = await msg.downloadMedia();
+    await msg.downloadMedia()
       .then((vn) =>
-        fs.writeFileSync("output.ogg", Buffer.from(vn.data, "base64"))
-      )
-      .then(() =>
-        convert("output.ogg", "output.wav", function (err) {
-          if (!err) {
-            console.log("conversion complete");
+        fs.writeFileSync("output.ogg", Buffer.from(vn.data, "base64")),
+        convert("output.ogg", "output.wav", function (cb) {
+          if (cb == "Done") {
+            transcribeFromFile((trans) => msg.reply(trans));
           }
         })
-      )
-      .then(() => transcribeFromFile((trans) => msg.reply(trans)))
-      .then(() => console.log("done"));
+        )
   }
 });
 client.initialize();
@@ -116,5 +112,8 @@ function convert(input, output, callback) {
     .on("error", function (err) {
       console.log("error: ", err.code, err.msg);
       callback(err);
+    })
+    .on("end",function () {
+      callback("Done");
     });
 }
