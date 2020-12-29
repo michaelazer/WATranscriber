@@ -27,22 +27,23 @@ client.on("message", async (msg) => {
   if (msg.hasMedia) {
     msg.reply("music to my ears");
     const vn = await msg.downloadMedia();
-    await msg.downloadMedia()
-      .then((vn) =>
-        fs.writeFileSync("output.ogg", Buffer.from(vn.data, "base64")),
-        convert("output.ogg", "output.wav", function (cb) {
-          if (cb == "Done") {
-            transcribeFromFile((trans) => msg.reply(trans));
-          }
-        })
-        )
+    console.log(msg.id.id);
+    // console.log(msg.)
+    const fileName = "audioFile_"+msg.id.id;
+    console.log(fileName);
+    fs.writeFileSync(`${fileName}.ogg`, Buffer.from(vn.data, "base64"));
+    convert(`${fileName}.ogg`, `${fileName}.wav`, function (cb) {
+      if (cb == "Done") {
+        transcribeFromFile(fileName,(trans) => msg.reply(trans));
+      }
+    })
   }
 });
 client.initialize();
 
-function transcribeFromFile(callback) {
+function transcribeFromFile(fileName, callback) {
   let pushStream = sdk.AudioInputStream.createPushStream();
-  fs.createReadStream("output.wav")
+  fs.createReadStream(`${fileName}.wav`)
     .on("data", function (arrayBuffer) {
       pushStream.write(arrayBuffer.slice());
       console.log("still uploading ...");
@@ -56,7 +57,7 @@ function transcribeFromFile(callback) {
   let recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
 
   recognizer.recognizing = (s, e) => {
-    console.log(`RECOGNIZING: Text=${e.result.text}`);
+    console.log(`RECOGNIZING file ${fileName}: Text=${e.result.text}`);
   };
 
   recognizer.recognized = (s, e) => {
@@ -102,6 +103,7 @@ function transcribeFromFile(callback) {
 }
 
 function convert(input, output, callback) {
+  // TODO: callback object
   ffmpeg()
     .input(input)
     .inputFormat("ogg")
