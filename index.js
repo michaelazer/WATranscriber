@@ -7,7 +7,8 @@ var ffmpeg = require("fluent-ffmpeg");
 const fs = require("fs");
 const sdk = require("microsoft-cognitiveservices-speech-sdk");
 let speechConfig = sdk.SpeechConfig.fromSubscription(key, region);
-speechConfig.speechRecognitionLanguage = "ar-EG";
+var autoDetectConfig = sdk.AutoDetectSourceLanguageConfig.fromLanguages(["en-US", "ar-EG"]);
+
 
 const client = new Client();
 client.on("qr", (qr) => {
@@ -25,7 +26,6 @@ client.on("message", async (msg) => {
     msg.reply("pong");
   }
   if (msg.hasMedia) {
-    msg.reply("music to my ears");
     const vn = await msg.downloadMedia();
     console.log(msg.id.id);
     // console.log(msg.)
@@ -35,6 +35,7 @@ client.on("message", async (msg) => {
     convert(`${fileName}.ogg`, `${fileName}.wav`, function (cb) {
       if (cb == "Done") {
         transcribeFromFile(fileName,(trans) => msg.reply(trans));
+
       }
     })
   }
@@ -54,10 +55,11 @@ function transcribeFromFile(fileName, callback) {
     });
 
   let audioConfig = sdk.AudioConfig.fromStreamInput(pushStream);
-  let recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
+  let recognizer = new sdk.SpeechRecognizer.FromConfig(speechConfig, autoDetectConfig, audioConfig);
+  // var speechRecognizer = SpeechSDK.SpeechRecognizer.FromConfig(speechConfig, autoDetectConfig, audioConfig);
 
   recognizer.recognizing = (s, e) => {
-    console.log(`RECOGNIZING file ${fileName}: Text=${e.result.text}`);
+    console.log(`RECOGNIZING: Text=${e.result.text}`);
   };
 
   recognizer.recognized = (s, e) => {
